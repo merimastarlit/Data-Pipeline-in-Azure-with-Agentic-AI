@@ -51,5 +51,6 @@ def pipeline_flow(array):
     return summary
 
 
+# Run the flow 
 if __name__ == "__main__":
     pipeline_flow(arr)
