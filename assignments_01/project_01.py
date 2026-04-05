@@ -162,28 +162,19 @@ def hypothesis_testing(output_df):
     group_b_mean = group_b.mean()
 
     if group_b_mean < group_a_mean:
-        direction = "decreased"
+        direction_2019_2020 = "decreased"
     else:
-        direction = "increased"
+        direction_2019_2020 = "increased"
 
-    t_stat, p_val = stats.ttest_ind(group_a, group_b, equal_var=False)
+    t_stat_2019_2020, p_val_2019_2020 = stats.ttest_ind(group_a, group_b, equal_var=False)
 
     logger.info(f"2019 mean: {group_a_mean}")
     logger.info(f"2020 mean: {group_b_mean}")
-    logger.info("t-statistic: %f", t_stat)
-    logger.info("p-value: %f", p_val)
+    logger.info(f"t-statistic: {t_stat_2019_2020}")
+    logger.info(f"p-value: {p_val_2019_2020}")
 
-    if p_val < 0.05:
-        logger.info(
-            f"Happiness scores {direction} from 2019 to 2020, and the change is statistically significant.")
-    else:
-        logger.info(
-            f"Happiness scores {direction} from 2019 to 2020, but the change is not statistically significant.")
-
-    region_a = output_df[output_df["Regional indicator"]
-                         == "Western Europe"]["Happiness score"]
-    region_b = output_df[output_df["Regional indicator"]
-                         == "East Asia"]["Happiness score"]
+    region_a = output_df[output_df["Regional indicator"] == "Western Europe"]["Happiness score"]
+    region_b = output_df[output_df["Regional indicator"] == "East Asia"]["Happiness score"]
 
     region_a_mean = region_a.mean()
     region_b_mean = region_b.mean()
@@ -193,25 +184,30 @@ def hypothesis_testing(output_df):
     else:
         region_direction = "lower"
 
-    t_stat, p_val = stats.ttest_ind(region_a, region_b, equal_var=False)
+    t_stat_regions, p_val_regions = stats.ttest_ind(region_a, region_b, equal_var=False)
 
     logger.info(f"Western Europe mean: {region_a_mean}")
     logger.info(f"East Asia mean: {region_b_mean}")
-    logger.info("t-statistic: %f", t_stat)
-    logger.info("p-value: %f", p_val)
+    logger.info(f"t-statistic: {t_stat_regions}")
+    logger.info(f"p-value: {p_val_regions}")
 
-    if p_val < 0.05:
-        logger.info(
-            f"Western Europe has {region_direction} happiness scores than East Asia, and the difference is statistically significant.")
-    else:
-        logger.info(
-            f"Western Europe has {region_direction} happiness scores than East Asia, but the difference is not statistically significant.")
+    return {
+        "mean_2019": group_a_mean,
+        "mean_2020": group_b_mean,
+        "p_value_2019_2020": p_val_2019_2020,
+        "direction_2019_2020": direction_2019_2020,
+        "western_europe_mean": region_a_mean,
+        "east_asia_mean": region_b_mean,
+        "p_value_regions": p_val_regions,
+        "region_direction": region_direction,
+    }
+
 
 
 # Task 5: Correlation and Multiple Comparisons
 
 @task
-def correlation_tests(output_df: pd.DataFrame) -> None:
+def correlation_tests(output_df) -> dict:
     """
     Compute Pearson correlations between each numeric explanatory variable
     and happiness score, then apply Bonferroni correction.
@@ -228,6 +224,10 @@ def correlation_tests(output_df: pd.DataFrame) -> None:
     logger.info(f"Number of correlation tests: {number_of_tests}")
     logger.info(f"Adjusted alpha (Bonferroni): {adjusted_alpha}")
 
+    strongest_variable = None
+    strongest_correlation = None
+    strongest_p_value = None
+
     for col in test_columns:
         corr_coef, p_val = stats.pearsonr(numeric_df[col], numeric_df[target])
 
@@ -241,6 +241,19 @@ def correlation_tests(output_df: pd.DataFrame) -> None:
         logger.info(
             f"  Significant after Bonferroni correction (alpha={adjusted_alpha}): {significant_bonferroni}"
         )
+
+        if significant_bonferroni:
+            if strongest_correlation is None or abs(corr_coef) > abs(strongest_correlation):
+                strongest_variable = col
+                strongest_correlation = corr_coef
+                strongest_p_value = p_val
+
+    return {
+        "strongest_variable": strongest_variable,
+        "strongest_correlation": strongest_correlation,
+        "strongest_p_value": strongest_p_value,
+        "adjusted_alpha": adjusted_alpha,
+    }
 
 
 @task
@@ -286,15 +299,17 @@ def summary_report(output_df, hypothesis_results, correlation_results):
 
 @flow
 def happiness_pipeline():
-    merged_df = merge_happiness_data()
-    test_stats(merged_df)
-    histogram_happiness_scores(merged_df)
-    boxplot_happiness_scores(merged_df)
-    scatter_plot_happiness_gdp(merged_df)
-    describe_correlations(merged_df)
-    hypothesis_testing(merged_df)
-    correlation_tests(merged_df)
-    # summary_report(merged_df, hypothesis_results, correlation_results) --- IGNORE ---
+    output_df = merge_happiness_data()
+    test_stats(output_df)
+    histogram_happiness_scores(output_df)
+    boxplot_happiness_scores(output_df)
+    scatter_plot_happiness_gdp(output_df)
+    describe_correlations(output_df)
+
+    hypothesis_results = hypothesis_testing(output_df)
+    correlation_results = correlation_tests(output_df)
+
+    summary_report(output_df, hypothesis_results, correlation_results)
 
 
 if __name__ == "__main__":

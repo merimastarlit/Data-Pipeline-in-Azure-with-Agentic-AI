@@ -360,14 +360,14 @@ arr = np.array([12.0, 15.0, np.nan, 14.0, 10.0, np.nan,
                18.0, 14.0, 16.0, 22.0, np.nan, 13.0])
 
 
-#create_series(arr) : takes a NumPy array and returns a pandas Series with the name "values"
+# create_series(arr) : takes a NumPy array and returns a pandas Series with the name "values"
 
 def create_series(nparray):
     series = pd.Series(nparray, name="values")
     return series
 
 
-#clean_data(series) : takes the Series, removes any NaN values using .dropna(), and returns the cleaned Series.
+# clean_data(series) : takes the Series, removes any NaN values using .dropna(), and returns the cleaned Series.
 
 def clean_data(series):
     cleaned_series = series.dropna()
@@ -387,7 +387,6 @@ def summarize_data(series):
     return summary
 
 
-
 def data_pipeline(array):
     series = create_series(array)
     cleaned_series = clean_data(series)
@@ -399,6 +398,3 @@ if __name__ == "__main__":
     result = data_pipeline(arr)
     for key, value in result.items():
         print(key, value)
-
-
-
