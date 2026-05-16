@@ -15,3 +15,4 @@ llama-index-embeddings-openai
 llama-index-vector-stores-postgres
 psycopg2-binary
 Pathlib
+smolagents
