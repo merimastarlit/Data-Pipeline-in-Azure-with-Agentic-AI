@@ -5,8 +5,8 @@ import json
 from dotenv import load_dotenv
 from openai import OpenAI
 
-if load_dotenv(dotenv_path="./ao.env"):
-    print("Successfully loaded api key")
+
+load_dotenv()
 client = OpenAI()
 
 response = client.chat.completions.create(
@@ -302,6 +302,9 @@ response2 = client.chat.completions.create(
 )
 
 print(response2.choices[0].message.content)
+
+# The delimeter helps prevent model confusing the instructions.
+
 
 
 # --- Ollama ---
