@@ -35,6 +35,8 @@ for temp in temperatures:
     print("Response:", response.choices[0].message.content)
 
 # As temperature increases, the responses become more creative and less deterministic. At temperature 0, the model gives a very straightforward and common name. At 0.7, the name is more unique and imaginative. At 1.5, the name is quite unconventional and may be less relevant to a data engineering consultancy, demonstrating increased creativity but decreased coherence. For personal choice, middle ground (0.7) often provides a good balance between creativity and relevance. But in some cases, a higher temperature might be preferred for brainstorming sessions where out-of-the-box ideas are desired. Especially for creative branding names, a higher temperature can yield more unique and memorable suggestions. If middle temperature doesn't satisfy me, I would analyze more creative version. Using below temperature has its own use cases. So it depends on the context and the desired outcome.
+# For consistent and reproducable output, I would use temperature=0, as it doesn't need to be creative.
+
 
 # API Q3:
 
