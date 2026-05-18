@@ -1,19 +1,30 @@
-from pathlib import Path
-
-from dotenv import load_dotenv
 from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
+import os
+import platform
+from pathlib import Path
+from dotenv import load_dotenv
 
+# if platform.machine() != "arm64":
+#     raise RuntimeError(
+#         "This virtual environment has arm64 packages installed, but Python is "
+#         f"running as {platform.machine()}. Run with: "
+#         "arch -arm64 ./venv/bin/python -u assignments_06/project_06.py"
+#     )
 
-# Step 1: Setup
 base_dir = Path(__file__).resolve().parent
 repo_dir = base_dir.parent
 
-if load_dotenv(dotenv_path=repo_dir / "ao.env"):
+
+if load_dotenv():
     print("API key loaded successfully.")
 else:
     print("Warning: could not load API key. Check your .env file.")
 
+if not os.getenv("OPENAI_API_KEY"):
+    raise RuntimeError(f"OPENAI_API_KEY not found. Expected it in: {env_path}")
 
+
+# Step 1: Setup
 docs_dir = base_dir / "resources" / "groundwork_docs"
 assert docs_dir.exists(), f"Document directory not found: {docs_dir}"
 
@@ -73,17 +84,22 @@ for q in questions:
 
 # Step 5: Find a Failure
 
-question = "How much the manager gets paid?"
+question = "How much does the manager get paid?"
 
 print(f"\nQ: {question}")
 response2 = query_engine.query(question)
-print("A:", response2)
+answer_text = getattr(response2, "response", str(response2))
+print("A:", answer_text)
 
-print(
-    f"Document name: {node_with_score.node.metadata.get('file_name', 'Unknown')}")
-print(f"Similarity Score: {node_with_score.score:.4f}")
-print(f"Text Snippet: {node_with_score.node.get_content()[:200]}...")
-print("-" * 30)
+if not response2.source_nodes:
+    print("No source nodes returned; the model had nothing to retrieve.")
+else:
+    for node_with_score in response2.source_nodes:
+        print(
+            f"Document name: {node_with_score.node.metadata.get('file_name', 'Unknown')}")
+        print(f"Similarity Score: {node_with_score.score:.4f}")
+        print(f"Text Snippet: {node_with_score.node.get_content()[:200]}...")
+        print("-" * 30)
 
 
 # Output:
