@@ -14,5 +14,10 @@ A: It was great to see that the costs are transperent on that platform, it reall
 
 What the script printed, and whether the calculated costs matched what you saw in the Pricing Calculator. (They should -- if they don't, note the discrepancy.)
 
-A: The script has printed the monthly cost estimates. That estimates didn't match the what the pricing calculator had showed, it just showed zeros, I think it is because I didn't login to the calculator. 
+A: The script has printed the monthly cost estimates as such:
+Scenario A (lightweight):       $2.24
+Scenario B (GPU VM only):       $2435.28
+Scenario B VM costs 1087.2x more than Scenario A
+which matches what I saw in the pricing calculator. 
+
 

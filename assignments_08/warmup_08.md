@@ -27,11 +27,11 @@ Azure Virtual Machines -- IaaS
 Azure App Service -- PaaS
 AWS S3 (Simple Storage Service) - IaaS
 GitHub Codespaces - SaaS
-Snowflake - SaaS
+Snowflake - PaaS
 Now describe IaaS, PaaS, and SaaS in your own words. For each, give one example (from the lesson or the list above) and describe what you, as the developer, are responsible for managing.
 
 IaaS - Infrastructure as a Service requires more human intervention, but it comes blank. Services such as virtual machines, we can create all kinds that we need, but we have to provision and maintain it. 
-PaaS - Platform as a Service provides ready platforms to provision our applications, and code is on us. We have to bring our code and are responsible for it.
+PaaS - Platform as a Service provides platforms to provision our applications, while application code is brought and managed by us.
 SaaS - Software as a Service are ready tools for us to use. That we don't have to worry at all about its backend, it is already complete and we just need to use it for our needs.
 
 Cloud Concepts Question 4
