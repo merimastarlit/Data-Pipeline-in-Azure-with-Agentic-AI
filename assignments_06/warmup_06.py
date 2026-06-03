@@ -21,10 +21,14 @@ from pathlib import Path
 base_dir = Path(__file__).resolve().parent
 repo_dir = base_dir.parent
 
+
+
 if load_dotenv():
     print("API key loaded successfully.")
 else:
     print("Warning: could not load API key. Check your .env file.")
+
+
 
 
 # Scenario A: A legal team wants an assistant that can answer questions about their internal policy library — hundreds of PDFs that are updated every quarter.
