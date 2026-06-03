@@ -15,4 +15,8 @@ llama-index-embeddings-openai
 llama-index-vector-stores-postgres
 psycopg2-binary
 Pathlib
+azure-identity 
+azure-mgmt-resource 
+azure-storage-blob 
+requests
 smolagents
