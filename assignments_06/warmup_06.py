@@ -8,10 +8,8 @@ from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
 import string
 from dotenv import load_dotenv
 import os
+import platform
 from pathlib import Path
-
-base_dir = Path(__file__).resolve().parent
-repo_dir = base_dir.parent
 
 # if platform.machine() != "arm64":
 #     raise RuntimeError(
@@ -19,6 +17,11 @@ repo_dir = base_dir.parent
 #         f"running as {platform.machine()}. Run with: "
 #         "arch -arm64 ./venv/bin/python -u assignments_06/project_06.py"
 #     )
+
+base_dir = Path(__file__).resolve().parent
+repo_dir = base_dir.parent
+
+
 
 if load_dotenv():
     print("API key loaded successfully.")
@@ -400,18 +403,31 @@ llm = OpenAI(model="gpt-4o-mini", temperature=0.2)
 faithfulness_evaluator = FaithfulnessEvaluator(llm=llm)
 relevancy_evaluator = RelevancyEvaluator(llm=llm)
 
-# Get response to query
+# Evaluate faithfulness and relevancy for a query
+
+
+def evaluate_query(q):
+    response = query_engine.query(q)
+    answer_text = getattr(response, "response", str(response))
+
+    faithfulness_result = faithfulness_evaluator.evaluate_response(
+        query=q, response=response)
+    relevancy_result = relevancy_evaluator.evaluate_response(
+        query=q, response=response)
+
+    print(f"\nEvaluation query: {q}")
+    print("A:", answer_text)
+    print("Faithfulness Evaluation: " + str(faithfulness_result.score))
+    print("Relevancy Result: " + str(relevancy_result.score))
+
+    return faithfulness_result, relevancy_result
+
+
 q = "What employee benefits does BrightLeaf offer?"
-response = query_engine.query(q)
+faithfulness_result, relevancy_result = evaluate_query(q)
 
-# Evaluate faithfulness and relevancy
-faithfulness_result = faithfulness_evaluator.evaluate_response(
-    query=q, response=response)
-print("Faithfulness Evaluation: " + str(faithfulness_result.score))
-
-relevancy_result = relevancy_evaluator.evaluate_response(
-    query=q, response=response)
-print("Relevancy Result: " + str(relevancy_result.score))
+low_quality_q = "What is BrightLeaf's CEO's favorite pizza topping?"
+low_faithfulness_result, low_relevancy_result = evaluate_query(low_quality_q)
 
 # Ouput:
 # Faithfulness Evaluation: 0.0
@@ -426,7 +442,7 @@ print("Relevancy Result: " + str(relevancy_result.score))
 # A relevancy score measures how well the answer addresses the user's question. It is different from faithfulness because an answer can be relevant to the question but still not be supported by the retrieved documents.
 
 # Did the scores change between your two queries? If so, why do you think that happened?
-# Yes, the scores can change between queries because some questions retrieve stronger, more useful context than others. If the retrieved chunks are more directly related to the question, the answer is usually more faithful and relevant.
+# Yes, the scores can change between the employee benefits query and the pizza topping query because the first question is at least related to BrightLeaf documents, while the second question is clearly outside the available context. If the retrieved chunks do not support the answer, faithfulness may drop. If the answer does not directly address the user's question, relevancy may drop.
 
 # What is the "LLM-as-a-judge" approach, and why is it used for RAG evaluation instead of a simple accuracy metric?
 # "LLM-as-a-judge" means using another LLM to evaluate the answer based on criteria like faithfulness and relevancy. It is used for RAG because many questions do not have one exact answer, so a simple accuracy metric is too rigid.
