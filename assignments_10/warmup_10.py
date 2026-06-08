@@ -13,10 +13,9 @@
 # A: I would use deterministic code that would calculate the average. We don't need LLM here.
 
 # Extract the company name from a freeform job title like "Sr. Data Eng @ Acme Corp (contract)".
-# A: Simple regex or an NLP entity extractor will be more reliable and debuggable. LLM can work if the patterns get very messy, but weigh that against the cost and non-determinism 
-
+# A: Simple regex or an NLP entity extractor will be more reliable and debuggable than an LLM for this task.
 # Determine whether a product review is more than 100 words long.
-# I would use a deterministic code here to determine if it is above 100 words. LLM would do this process poorly.
+# I would use a deterministic code here to determine if it is above 100 words as LLM would do this process poorly.
 
 # LLMs as Transform Question 2
 
@@ -49,7 +48,7 @@ system = """You are a product-review summarizer. Input: raw review text. Output:
 # When you switch from OpenAI to AzureOpenAI, the client initialization takes three Azure-specific parameters. In a comment block, name them and describe what each one is. (Do not include the standard api_key -- describe the Azure-specific ones.)
 
 # A: azure_endpoint="https://<resource-name>.openai.azure.com", (It needs our resource name on Azure cloud to connect.)
-    # api_key="<azure-api-key>", (it needs the API key from Azure, not from OpenAI directly)
+    
     # api_version="2024-02-01" (The string that selects which Azure OpenAI API version to call (e.g. “2024-02-01”))
     # api_type (Set this to “azure” so the client knows you’re targeting Azure’s hosted models.)
     # api_base (sometimes called azure_endpoint. The full URL for your Azure OpenAI resource, e.g. https://my-resource.openai.azure.com/)
