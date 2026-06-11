@@ -20,6 +20,7 @@
 # LLMs as Transform Question 2
 
 system = "Summarize this product review in a few sentences"
+# this original prompt needs more details and specificity to ensure consistent output formats that won't break automated pipelines
 
 system = """You are a product-review summarizer. Input: raw review text. Output: JSON only, with exactly two keys: "summary": a concise 2–3 sentence summary, "word_count": integer word count of that summary. If the review is empty, output: {"error": "no content"} Do not output any additional keys, markdown, or commentary."""
 # This system definition is incomplete. In order to confirm the system went through successfully, we can add more details as shown on the second system.
@@ -51,7 +52,7 @@ system = """You are a product-review summarizer. Input: raw review text. Output:
     
     # api_version="2024-02-01" (The string that selects which Azure OpenAI API version to call (e.g. “2024-02-01”))
     # api_type (Set this to “azure” so the client knows you’re targeting Azure’s hosted models.)
-    # api_base (sometimes called azure_endpoint. The full URL for your Azure OpenAI resource, e.g. https://my-resource.openai.azure.com/)
+    # api_base (the full URL of your Azure OpenAI resource)
 
 # Azure OpenAI Question 3
 
