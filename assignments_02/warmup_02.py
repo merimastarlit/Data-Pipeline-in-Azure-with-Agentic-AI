@@ -71,13 +71,24 @@ print(kmeans.cluster_centers_)
 points = np.bincount(labels)
 print(f"Number of points in each cluster: {points}")
 
-
+# Right plot: what K-Means discovers
 ax2.scatter(X_clusters[:, 0], X_clusters[:, 1],
             c=labels, cmap='viridis', s=60, alpha=0.7)
+
+# Adding cluster centers as black X's
+ax2.scatter(
+    kmeans.cluster_centers_[:, 0],
+    kmeans.cluster_centers_[:, 1],
+    marker='X', color='black', s=200
+)
+
+# Adding titles and labels to the right plot
 ax2.set_title("Student Clusters Found by K-Means")
 ax2.set_xlabel("Study Hours (synthetic scale)")
 ax2.set_ylabel("Social Time (synthetic scale)")
 
+
+# save the figure to outputs/kmeans_clusters.png and show it
 plt.tight_layout()
 plt.savefig("outputs/kmeans_clusters.png")
 plt.show()
@@ -180,10 +191,13 @@ print("R² with smoker:   ", r2_with_smoker)
 
 # Linear Regression Question 5:
 
+# Create a scatter plot of predicted vs actual costs for the model with both features. Add a diagonal line to indicate perfect predictions. Save the figure to outputs/predicted_vs_actual.png.
 max_val = max(max(y_test), max(y_pred_2))
 min_val = min(min(y_test), min(y_pred_2))
 
 plt.figure(figsize=(8, 8))
+
+# Scatter plot of predicted vs actual costs
 plt.scatter(y_pred_2, y_test, color="blue", alpha=0.7)
 
 plt.plot([min_val, max_val], [min_val, max_val], color="red")
@@ -193,4 +207,7 @@ plt.xlabel("Predicted")
 plt.ylabel("Actual")
 plt.tight_layout()
 plt.savefig("outputs/predicted_vs_actual.png")
+
+# Points above the diagonal: actual cost > predicted cost (underestimation)
+# Points below the diagonal: actual cost < predicted cost (overestimation)
 plt.show()
