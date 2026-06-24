@@ -7,10 +7,11 @@ from sklearn.linear_model import LinearRegression
 
 # Task 1
 
-base_url = "https://raw.githubusercontent.com/Code-the-Dream-School/python-200/refs/heads/main/assignments/resources/student_performance_math.csv"
+# base_url = "https://raw.githubusercontent.com/Code-the-Dream-School/python-200/refs/heads/main/assignments/resources/student_performance_math.csv"
 
 # Load the dataset into a pandas DataFrame. The csv file is separated by semicolons (;), so we need to make sure to specify the correct separator when reading the file.
-df = pd.read_csv(base_url, sep=';')
+
+df = pd.read_csv('assignments_02/resources/student_performance_math.csv', sep=';')
 
 print(df.shape)
 print(df.head(5))
@@ -28,7 +29,7 @@ plt.show()
 
 # Task 2: Preprocess the data
 
-filtered_df = df[df["G3"] != 0]
+filtered_df = df[df["G3"] != 0].copy()
 print(df.shape)
 print(filtered_df.shape)
 
