@@ -149,7 +149,7 @@ print(classification_report(y_test, y_pred_dt, target_names=iris.target_names))
 C_values = [0.01, 1.0, 100]
 
 for C in C_values:
-    model = LogisticRegression(C=C, max_iter=1000)
+    model = LogisticRegression(C=C, max_iter=1000, solver='liblinear')
     model.fit(X_train_scaled, y_train)
 
     coef_magnitude = np.abs(model.coef_).sum()

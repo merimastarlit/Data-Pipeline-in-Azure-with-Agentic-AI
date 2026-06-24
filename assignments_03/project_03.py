@@ -156,6 +156,20 @@ cumulative_variance_ratio = explained_variance_ratio.cumsum()
 print("Explained Variance Ratio:", explained_variance_ratio)
 print("Cumulative Explained Variance Ratio:", cumulative_variance_ratio)
 
+# Plot and save the cumulative explained variance curve to visualize how many
+# principal components are needed to capture 95% of the variance in the data.
+plt.plot(range(1, len(cumulative_variance_ratio) + 1), cumulative_variance_ratio, marker='o')
+plt.axhline(y=0.95, color='red', linestyle='--', label='95% threshold')
+plt.title("Cumulative Explained Variance by PCA Components")
+plt.xlabel("Number of Components")
+plt.ylabel("Cumulative Explained Variance")
+plt.legend()
+plt.grid()
+plt.savefig("assignments_03/outputs/pca_cumulative_variance.png")
+plt.show()
+
+
+
 
 # Task 3: A Classifier Comparison
 
@@ -219,7 +233,7 @@ plt.title('Cumulative Explained Variance by PCA Components')
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.savefig('outputs/cumulative_explained_variance.png')
+plt.savefig('assignments_03/outputs/cumulative_explained_variance.png')
 plt.show()
 
 
@@ -249,6 +263,17 @@ for depth in [3, 5, 10, None]:
 
 # As depth increases, the model begins to overfit. The tree with no depth limit memorizes the training data, leading to very high training accuracy but lower test accuracy. The best depth is 10 because it achieves the highest test accuracy while still generalizing well.
 
+# Fit final Decision Tree at best depth and print top 10 feature importances
+dt_final = DecisionTreeClassifier(max_depth=10, random_state=42)
+dt_final.fit(X_train, y_train)
+
+feature_names = X.columns.tolist()
+dt_importances = pd.Series(dt_final.feature_importances_, index=feature_names)
+top10_dt = dt_importances.sort_values(ascending=False).head(10)
+print("Top 10 features (Decision Tree):")
+print(top10_dt)
+
+
 
 # Random Forest
 rf = RandomForestClassifier(n_estimators=100, random_state=42)
@@ -261,7 +286,7 @@ print("Accuracy for Random Forest:", accuracy_score(y_test, y_pred_rf))
 # Random Forest performed best because it combines many trees that make different mistakes, which helps reduce random errors and improves overall performance.
 
 # Feature Importances
-dt_importances = dt.feature_importances_
+dt_importances = dt_final.feature_importances_
 rf_importances = rf.feature_importances_
 
 rf_importances_df = pd.DataFrame({
@@ -278,7 +303,7 @@ plt.figure(figsize=(10, 6))
 sns.barplot(x="importance", y="feature", data=rf_top10)
 plt.title("Top 10 Feature Importances (Random Forest)")
 plt.tight_layout()
-plt.savefig("outputs/feature_importances.png")
+plt.savefig("assignments_03/outputs/feature_importances.png")
 plt.show()
 
 # Do the models agree? Yes, both Decision Tree and Random Forest highlight similar important features.
@@ -315,7 +340,7 @@ print("Accuracy for Logistic Regression with PCA:",
 
 
 ConfusionMatrixDisplay.from_predictions(y_test, y_pred_rf)
-plt.savefig("outputs/best_model_confusion_matrix.png")
+plt.savefig("assignments_03/outputs/best_model_confusion_matrix.png")
 plt.show()
 
 # Conclusion:
@@ -351,6 +376,24 @@ knn_cv = KNeighborsClassifier(n_neighbors=5)
 scores = cross_val_score(knn_cv, X_train_scaled, y_train, cv=5)
 print("KNN Mean:", scores.mean())
 print("KNN Std:", scores.std())
+
+# KNN (unscaled)
+knn_cv_unscaled = KNeighborsClassifier(n_neighbors=5)
+scores = cross_val_score(knn_cv_unscaled, X_train, y_train, cv=5)
+print("KNN (unscaled) Mean:", scores.mean())
+print("KNN (unscaled) Std:", scores.std())
+
+# Logistic Regression with PCA
+lr_cv_pca = LogisticRegression(max_iter=1000, random_state=42)
+scores = cross_val_score(lr_cv_pca, X_train_pca, y_train, cv=5)
+print("LR (PCA) Mean:", scores.mean())
+print("LR (PCA) Std:", scores.std())
+
+# KNN with PCA
+knn_cv_pca = KNeighborsClassifier(n_neighbors=5)
+scores = cross_val_score(knn_cv_pca, X_train_pca, y_train, cv=5)
+print("KNN (PCA) Mean:", scores.mean())
+print("KNN (PCA) Std:", scores.std())
 
 
 # Task 5: Building a Prediction Pipeline
