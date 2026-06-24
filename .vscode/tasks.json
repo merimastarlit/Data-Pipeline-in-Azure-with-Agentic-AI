@@ -1,0 +1,20 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run project_06.py (arm64)",
+            "type": "shell",
+            "command": "arch",
+            "args": [
+                "-arm64",
+                "${workspaceFolder}/venv/bin/python",
+                "-u",
+                "${workspaceFolder}/assignments_06/project_06.py"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

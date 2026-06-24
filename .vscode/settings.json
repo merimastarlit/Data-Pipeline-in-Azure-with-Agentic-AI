@@ -1,0 +1,8 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/.vscode/python-arm64",
+    "python.terminal.activateEnvironment": true,
+    "code-runner.runInTerminal": true,
+    "code-runner.executorMap": {
+        "python": "arch -arm64 ${workspaceFolder}/venv/bin/python -u"
+    }
+}
