@@ -7,10 +7,11 @@ from sklearn.linear_model import LinearRegression
 
 # Task 1
 
-base_url = "https://raw.githubusercontent.com/Code-the-Dream-School/python-200/refs/heads/main/assignments/resources/student_performance_math.csv"
+# base_url = "https://raw.githubusercontent.com/Code-the-Dream-School/python-200/refs/heads/main/assignments/resources/student_performance_math.csv"
 
 # Load the dataset into a pandas DataFrame. The csv file is separated by semicolons (;), so we need to make sure to specify the correct separator when reading the file.
-df = pd.read_csv(base_url, sep=';')
+
+df = pd.read_csv('assignments_02/resources/student_performance_math.csv', sep=';')
 
 print(df.shape)
 print(df.head(5))
@@ -21,12 +22,14 @@ plt.title("Distribution of Final Math Grades")
 plt.xlabel("Final Grade (G3)")
 plt.ylabel("Frequency")
 plt.grid(axis='y', alpha=0.75)
-plt.savefig("outputs/g3_distribution.png")
+plt.savefig("assignments_02/outputs/g3_distribution.png")
+
+# We see a distinct bar at G3 = 0 representing students who did not take the final exam.
 plt.show()
 
 # Task 2: Preprocess the data
 
-filtered_df = df[df["G3"] != 0]
+filtered_df = df[df["G3"] != 0].copy()
 print(df.shape)
 print(filtered_df.shape)
 
@@ -59,7 +62,7 @@ plt.title("Absences vs Final Grade (G3)")
 plt.xlabel("Number of Absences")
 plt.ylabel("Final Grade (G3)")
 plt.grid()
-plt.savefig("outputs/absences_vs_g3.png")
+plt.savefig("assignments_02/outputs/absences_vs_g3.png")
 plt.show()
 
 
@@ -68,6 +71,12 @@ plt.show()
 g3_corrs = filtered_df.corr()["G3"].sort_values()
 print(g3_corrs)
 
+# The feature with the strongest positive correlation with G3 is G2 (second period grade),
+# which makes sense as prior performance is the best predictor of final grade.
+# The feature with the strongest negative correlation is failures.
+# A surprising finding is that studytime has a weaker correlation with G3 than expected,
+# suggesting that time spent studying alone doesn't strongly predict final grade.
+
 # a) first plot: studytime vs G3
 plt.scatter(filtered_df["studytime"], filtered_df["G3"])
 plt.title("Study Time vs Final Grade (G3)")
@@ -75,10 +84,12 @@ plt.xlabel(
     "Study Time (1=less than 2 hours, 2=2 to 5 hours, 3=5 to 10 hours, 4=more than 10 hours)")
 plt.ylabel("Final Grade (G3)")
 plt.grid()
-plt.savefig("outputs/studytime_vs_g3.png")
+plt.savefig("assignments_02/outputs/studytime_vs_g3.png")
 plt.show()
 
-# The scatter plot shows a negative relationship because students with more failures tend to have lower final grades, although the pattern is not perfect and the points are somewhat spread out.
+# The scatter plot shows almost no clear relationship between study time and G3.
+# Grades are widely spread across all study time categories (1–4),
+# suggesting study time alone is a poor predictor of final grade.
 
 
 # b) second plot: failures vs G3
@@ -88,7 +99,7 @@ plt.title("Failures vs Final Grade (G3)")
 plt.xlabel("Number of Failures")
 plt.ylabel("Final Grade (G3)")
 plt.grid()
-plt.savefig("outputs/failures_vs_g3.png")
+plt.savefig("assignments_02/outputs/failures_vs_g3.png")
 plt.show()
 
 # The scatter plot shows a negative relationship because students with more failures tend to have lower final grades, and as failures increase, grades tend to decrease.
@@ -128,23 +139,24 @@ print("R² on the test set:", r2)
 # An R² of about 0.20 means that failures explain only about 20% of the variation in final grades, so there are likely many other factors influencing student performance that are not captured by this model.
 # The model is weak because using only one feature (failures) is too limited, and it does not capture other important factors that affect student performance.
 
+
 # Task 5: Final Model
 
+# With no G1
+
+# Feature selection: failures, Medu, Fedu, studytime, higher, schoolsup, internet
 feature_cols = ["failures", "Medu", "Fedu", "studytime", "higher", "schoolsup",
-                "internet", "sex", "freetime", "activities", "traveltime", "G1"]
+                "internet", "sex", "freetime", "activities", "traveltime"]
 
 X = filtered_df[feature_cols].values
 y = filtered_df["G3"].values
 
+# Split the data into training and test sets using an 80/20 split and random_state=42.
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
-
 )
-print(f"Shape of X_train: {X_train.shape}")
-print(f"Shape of X_test: {X_test.shape}")
-print(f"Shape of y_train: {y_train.shape}")
-print(f"Shape of y_test: {y_test.shape}")
 
+# Train a linear regression model using the training set and evaluate it on the test set. Print the R² score for both the training and test sets, as well as the RMSE for the test set. Also, print the coefficients of each feature in the model.
 model_final = LinearRegression()
 model_final.fit(X_train, y_train)
 y_pred_final = model_final.predict(X_test)
@@ -161,7 +173,16 @@ for name, coef in zip(feature_cols, model_final.coef_):
     print(f"{name:12s}: {coef:+.3f}")
 
 # Interpretation:
-# Adding more features slightly improved the model because the R² increased, meaning the model explains more variation in final grades. The negative coefficient for schoolsup may be because students who receive extra support are already struggling, so their grades tend to be lower. Students with internet access tend to have higher grades, possibly because they have better access to learning resources, although this does not prove causation. The train and test R² are close, which suggests the model is not overfitting, but the overall R² is still low, meaning the model does not explain much of the variation in grades.
+# Adding more features slightly improved the model compared to the baseline from Task 4.
+# The negative coefficient for schoolsup likely reflects that students receiving extra support
+# are already struggling academically. Internet access has a positive coefficient, possibly
+# because it provides better access to learning resources, though this does not imply causation.
+# Train and test R² are close, suggesting no significant overfitting, but the overall R²
+# remains low — most variation in grades is driven by factors not captured in this model.
+# For production, I would keep failures, Medu, and internet as they show the clearest
+# signal. Features like activities and freetime contribute little and could be dropped.
+
+
 
 # Task 6: Evaluate and Summarize
 
@@ -171,7 +192,7 @@ plt.title("Predicted vs Actual (Full Model)")
 plt.xlabel("Predicted Final Grade (G3)")
 plt.ylabel("Actual Final Grade (G3)")
 plt.grid()
-plt.savefig("outputs/predicted_vs_actual.png")
+plt.savefig("assignments_02/outputs/predicted_vs_actual.png")
 plt.show()
 
 # Interpretation:
@@ -187,6 +208,35 @@ plt.show()
 # One surprising result is that school support has a negative coefficient. This is unexpected because support should help students, but it likely reflects that students receiving support are those who are already performing poorly.
 
 
-# NEGLECTED G1
+# Task 7: Neglected Feature with the Power of G1
 
-# Adding G1 greatly increases the model’s R², showing that it is a very strong predictor of the final grade. However, this does not mean that G1 causes G3. Instead, G1 is simply an earlier measurement of the same academic performance, so it is naturally highly correlated with the final grade. This model is not very useful for early intervention because G1 is only available after the first grading period, meaning students may already be struggling by the time it is known. To intervene earlier, educators would need to build a model using only background and behavioral features, such as study time, absences, and prior failures, which are available before students receive their first grade.
+# feature selection: failures, Medu, Fedu, studytime, higher, schoolsup, internet, G1
+feature_cols_g1 = ["failures", "Medu", "Fedu", "studytime", "higher", "schoolsup",
+                   "internet", "sex", "freetime", "activities", "traveltime", "G1"]
+
+# Split the data into training and test sets using an 80/20 split and random_state=42.
+X_g1 = filtered_df[feature_cols_g1].values
+
+# Split the data into training and test sets using an 80/20 split and random_state=42.
+X_train_g1, X_test_g1, y_train_g1, y_test_g1 = train_test_split(
+    X_g1, y, test_size=0.2, random_state=42
+)
+
+model_g1 = LinearRegression()
+model_g1.fit(X_train_g1, y_train_g1)
+y_pred_g1 = model_g1.predict(X_test_g1)
+
+# Calculate R² for the test set with G1 included
+r2_with_g1 = model_g1.score(X_test_g1, y_test_g1)
+
+# Print the R² score for the test set with G1 included
+print("Test R² with G1:", r2_with_g1)
+
+# Adding G1 dramatically increases R², jumping from roughly 0.15 to ~0.80.
+# This does not mean G1 causes G3 — G1 is simply an earlier measurement of the same
+# underlying academic ability, so they are naturally highly correlated.
+# This model is not useful for early intervention because G1 is only available
+# after the first grading period, by which point students may already be struggling.
+# Educators wanting to intervene earlier would need a model built solely from
+# background and behavioral features available before the school year begins,
+# such as failures, parental education, and study time.

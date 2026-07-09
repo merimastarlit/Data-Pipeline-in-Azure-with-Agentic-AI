@@ -95,12 +95,18 @@ print(df.head(5))
 # finding out emails are there in the dataset
 print(df.shape)
 
+
 # count how many spam and non-spam emails are there
 print(df['spam_label'].value_counts())
 
+# The dataset contains 2788 ham emails (60.6%) and 1813 spam emails (39.4%), 
+# which is moderately imbalanced toward ham.
+# This matters because a naive model that predicts "not spam" for every email 
+# would achieve ~60% accuracy without learning anything useful. Raw accuracy 
+# alone is therefore misleading — precision and recall are more informative, 
+# especially since false positives (real emails marked as spam) can cause 
+# users to miss important messages.
 
-# My thoughts:
-# For a spam filter, accuracy is not enough. I care a lot about false positives, because marking a real email as spam can make the user miss important messages.
 
 # Boxplot
 
@@ -108,25 +114,37 @@ sns.boxplot(x='spam_label', y='word_freq_free', data=df)
 plt.title('Boxplot of Word Frequency "free" by Spam Label')
 plt.xlabel('Spam Label (0 = Not Spam, 1 = Spam)')
 plt.ylabel('Frequency of "free"')
-plt.savefig('outputs/word_freq_free_boxplot.png')
+plt.savefig('assignments_03/outputs/word_freq_free_boxplot.png')
 plt.show()
 
 sns.boxplot(x='spam_label', y='char_freq_!', data=df)
 plt.title('Boxplot of Character Frequency "!" by Spam Label')
 plt.xlabel('Spam Label (0 = Not Spam, 1 = Spam)')
 plt.ylabel('Frequency of "!"')
-plt.savefig('outputs/char_freq_exclamation_boxplot.png')
+plt.savefig('assignments_03/outputs/char_freq_exclamation_boxplot.png')
 plt.show()
 
 sns.boxplot(x='spam_label', y='capital_run_length_total', data=df)
 plt.title('Boxplot of Capital Run Length Total by Spam Label')
 plt.xlabel('Spam Label (0 = Not Spam, 1 = Spam)')
 plt.ylabel('Total Capital Run Length')
-plt.savefig('outputs/capital_run_length_total_boxplot.png')
+plt.savefig('assignments_03/outputs/capital_run_length_total_boxplot.png')
 plt.show()
 
+# Most word frequency features are heavily skewed toward zero — the majority of emails
+# do not contain most words, so these columns consist mostly of 0.0 with occasional
+# high outliers. This is visible in the boxplots where the interquartile range sits
+# near zero with long upper whiskers.
+#
+# Numeric scales also vary widely across features: word frequency values are tiny
+# fractions (typically 0.0–1.0), while capital_run_length_total can reach into the
+# hundreds or thousands. This matters for models like KNN and Logistic Regression,
+# which are sensitive to feature scale — a large-valued feature will dominate distance
+# calculations even if it is no more informative than others. This is why we apply
+# StandardScaler before those models. Decision Tree and Random Forest are not affected
+# by scale because they split on thresholds rather than distances.
 
-# the differences are subtle, but we can see that spam emails tend to have higher frequencies of the word "free", more exclamation marks, and longer runs of capital letters. These features could be useful for building a spam classification model.
+
 
 # Task 2 Test and train
 
@@ -155,6 +173,22 @@ cumulative_variance_ratio = explained_variance_ratio.cumsum()
 
 print("Explained Variance Ratio:", explained_variance_ratio)
 print("Cumulative Explained Variance Ratio:", cumulative_variance_ratio)
+
+# Plot and save the cumulative explained variance curve to visualize how many
+# principal components are needed to capture 95% of the variance in the data.
+plt.plot(range(1, len(cumulative_variance_ratio) + 1), cumulative_variance_ratio, marker='o')
+plt.axhline(y=0.95, color='red', linestyle='--', label='95% threshold')
+plt.title("Cumulative Explained Variance by PCA Components")
+plt.xlabel("Number of Components")
+plt.ylabel("Cumulative Explained Variance")
+plt.legend()
+plt.grid()
+plt.savefig("assignments_03/outputs/pca_cumulative_variance.png")
+plt.show()
+
+n_components_90 = np.argmax(cumulative_variance_ratio >= 0.90) + 1
+print(f"Number of components needed to reach 90% variance: {n_components_90}")
+
 
 
 # Task 3: A Classifier Comparison
@@ -219,12 +253,11 @@ plt.title('Cumulative Explained Variance by PCA Components')
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.savefig('outputs/cumulative_explained_variance.png')
+plt.savefig('assignments_03/outputs/cumulative_explained_variance.png')
 plt.show()
 
 
 # Decision Tree
-
 
 dt = DecisionTreeClassifier(random_state=42)
 dt.fit(X_train, y_train)
@@ -235,7 +268,6 @@ print(classification_report(y_test, y_pred_dt))
 print("Accuracy for Decision Tree:", accuracy_score(y_test, y_pred_dt))
 
 # Try with different depths
-
 for depth in [3, 5, 10, None]:
     dt = DecisionTreeClassifier(max_depth=depth, random_state=42)
     dt.fit(X_train, y_train)
@@ -249,6 +281,24 @@ for depth in [3, 5, 10, None]:
 
 # As depth increases, the model begins to overfit. The tree with no depth limit memorizes the training data, leading to very high training accuracy but lower test accuracy. The best depth is 10 because it achieves the highest test accuracy while still generalizing well.
 
+# Fit final Decision Tree at best depth
+dt_final = DecisionTreeClassifier(max_depth=10, random_state=42)
+dt_final.fit(X_train, y_train)
+y_pred_final = dt_final.predict(X_test)
+
+print("Classification Report for Decision Tree (max_depth=10):")
+print(classification_report(y_test, y_pred_final))
+print("Accuracy for Decision Tree (max_depth=10):", accuracy_score(y_test, y_pred_final))
+
+# Top 10 feature importances
+feature_names = X.columns.tolist()
+dt_importances = pd.Series(dt_final.feature_importances_, index=feature_names)
+top10_dt = dt_importances.sort_values(ascending=False).head(10)
+print("Top 10 features (Decision Tree):")
+print(top10_dt)
+
+
+
 
 # Random Forest
 rf = RandomForestClassifier(n_estimators=100, random_state=42)
@@ -261,7 +311,7 @@ print("Accuracy for Random Forest:", accuracy_score(y_test, y_pred_rf))
 # Random Forest performed best because it combines many trees that make different mistakes, which helps reduce random errors and improves overall performance.
 
 # Feature Importances
-dt_importances = dt.feature_importances_
+dt_importances = dt_final.feature_importances_
 rf_importances = rf.feature_importances_
 
 rf_importances_df = pd.DataFrame({
@@ -278,7 +328,7 @@ plt.figure(figsize=(10, 6))
 sns.barplot(x="importance", y="feature", data=rf_top10)
 plt.title("Top 10 Feature Importances (Random Forest)")
 plt.tight_layout()
-plt.savefig("outputs/feature_importances.png")
+plt.savefig("assignments_03/outputs/feature_importances.png")
 plt.show()
 
 # Do the models agree? Yes, both Decision Tree and Random Forest highlight similar important features.
@@ -287,7 +337,7 @@ plt.show()
 
 #  Logistic regression
 
-lr = LogisticRegression(max_iter=1000, random_state=42)
+lr = LogisticRegression(max_iter=1000, random_state=42, solver='liblinear')
 lr.fit(X_train_scaled, y_train)
 y_pred_lr = lr.predict(X_test_scaled)
 print("Classification Report for Logistic Regression:")
@@ -296,7 +346,7 @@ print("Accuracy for Logistic Regression:", accuracy_score(y_test, y_pred_lr))
 
 # Now with PCA
 
-lr_pca = LogisticRegression(max_iter=1000, random_state=42)
+lr_pca = LogisticRegression(max_iter=1000, random_state=42, solver='liblinear')
 lr_pca.fit(X_train_pca, y_train)
 y_pred_lr_pca = lr_pca.predict(X_test_pca)
 print("Classification Report for Logistic Regression with PCA:")
@@ -315,7 +365,7 @@ print("Accuracy for Logistic Regression with PCA:",
 
 
 ConfusionMatrixDisplay.from_predictions(y_test, y_pred_rf)
-plt.savefig("outputs/best_model_confusion_matrix.png")
+plt.savefig("assignments_03/outputs/best_model_confusion_matrix.png")
 plt.show()
 
 # Conclusion:
@@ -341,7 +391,7 @@ print("RF Mean:", scores.mean())
 print("RF Std:", scores.std())
 
 # Logistic Regression (scaled)
-lr_cv = LogisticRegression(max_iter=1000, random_state=42)
+lr_cv = LogisticRegression(max_iter=1000, random_state=42, solver='liblinear')
 scores = cross_val_score(lr_cv, X_train_scaled, y_train, cv=5)
 print("LR Mean:", scores.mean())
 print("LR Std:", scores.std())
@@ -351,6 +401,24 @@ knn_cv = KNeighborsClassifier(n_neighbors=5)
 scores = cross_val_score(knn_cv, X_train_scaled, y_train, cv=5)
 print("KNN Mean:", scores.mean())
 print("KNN Std:", scores.std())
+
+# KNN (unscaled)
+knn_cv_unscaled = KNeighborsClassifier(n_neighbors=5)
+scores = cross_val_score(knn_cv_unscaled, X_train, y_train, cv=5)
+print("KNN (unscaled) Mean:", scores.mean())
+print("KNN (unscaled) Std:", scores.std())
+
+# Logistic Regression with PCA
+lr_cv_pca = LogisticRegression(max_iter=1000, random_state=42, solver='liblinear')
+scores = cross_val_score(lr_cv_pca, X_train_pca, y_train, cv=5)
+print("LR (PCA) Mean:", scores.mean())
+print("LR (PCA) Std:", scores.std())
+
+# KNN with PCA
+knn_cv_pca = KNeighborsClassifier(n_neighbors=5)
+scores = cross_val_score(knn_cv_pca, X_train_pca, y_train, cv=5)
+print("KNN (PCA) Mean:", scores.mean())
+print("KNN (PCA) Std:", scores.std())
 
 
 # Task 5: Building a Prediction Pipeline
